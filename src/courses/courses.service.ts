@@ -1,4 +1,6 @@
 import { Injectable, HttpException } from '@nestjs/common';
+import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
+import { Cron, Interval } from '@nestjs/schedule';
 
 import { Course } from './entities/course.entity';
 import { CreateCourseDto } from './dtos/create-course.dto';
@@ -8,8 +10,18 @@ import { UpdateCourseDto } from './dtos/update-course.dto';
 export class CoursesService {
   private readonly coursesList: Course[] = [];
   private currentId: number = 0;
+  private timer: number = 0;
+
+  constructor(private readonly eventEmitter: EventEmitter2) { }
+
+  @Interval(1000)
+  runTimer() {
+    this.timer += 1;
+  }
 
   list(): Course[] {
+    this.eventEmitter.emit('courses.list', this.coursesList);
+
     return this.coursesList;
   }
 
@@ -19,6 +31,8 @@ export class CoursesService {
     if (!findedCourse) {
       throw new HttpException('Course not found!', 404);
     }
+
+    this.eventEmitter.emit('courses.findById', findedCourse);
 
     return findedCourse;
   }
@@ -34,6 +48,8 @@ export class CoursesService {
     this.coursesList.push(createdCourse);
 
     this.currentId += 1;
+
+    this.eventEmitter.emit('courses.create', createdCourse);
 
     return createdCourse;
   }
@@ -54,6 +70,8 @@ export class CoursesService {
 
     this.coursesList[courseIndex] = updatedCourse;
 
+    this.eventEmitter.emit('courses.update', updatedCourse);
+
     return updatedCourse;
   }
 
@@ -65,5 +83,22 @@ export class CoursesService {
     }
 
     this.coursesList.splice(courseIndex, 1);
+
+    this.eventEmitter.emit('courses.delete', { message: `Course ${id} deleted!` });
+  }
+
+  @OnEvent('courses.*')
+  handleCourseCreated(payload: any) {
+    console.log('==> Escutou o evento courses.* <==');
+    console.log('Payload:', payload);
+  }
+
+  @Cron('* * * * *')
+  everyMinuteListAllCourses() {
+    const result = this.list();
+
+    console.log('==> EveryMinuteListAllCourses <==')
+    console.log('List:', result);
+    console.log('Timer:', this.timer)
   }
 }
