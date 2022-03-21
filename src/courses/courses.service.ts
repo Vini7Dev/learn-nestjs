@@ -85,6 +85,8 @@ export class CoursesService {
     this.coursesList.splice(courseIndex, 1);
 
     this.eventEmitter.emit('courses.delete', { message: `Course ${id} deleted!` });
+
+    return id;
   }
 
   @OnEvent('courses.*')
