@@ -5,14 +5,16 @@ import { Cron, Interval } from '@nestjs/schedule';
 import { Course } from './entities/course.entity';
 import { CreateCourseDto } from './dtos/create-course.dto';
 import { UpdateCourseDto } from './dtos/update-course.dto';
+import { CoursesRepository } from './repositories/courses-repository';
 
 @Injectable()
 export class CoursesService {
-  private readonly coursesList: Course[] = [];
-  private currentId: number = 0;
   private timer: number = 0;
 
-  constructor(private readonly eventEmitter: EventEmitter2) { }
+  constructor(
+    private readonly eventEmitter: EventEmitter2,
+    private readonly coursesRepository: CoursesRepository,
+  ) { }
 
   @Interval(1000)
   runTimer() {
@@ -20,17 +22,15 @@ export class CoursesService {
   }
 
   list(): Course[] {
-    this.eventEmitter.emit('courses.list', this.coursesList);
+    const coursesList = this.coursesRepository.list();
 
-    return this.coursesList;
+    this.eventEmitter.emit('courses.list', coursesList);
+
+    return coursesList;
   }
 
   findById(id: number) {
-    const findedCourse = this.coursesList.find(course => course.id === id);
-
-    if (!findedCourse) {
-      throw new HttpException('Course not found!', 404);
-    }
+    const findedCourse = this.coursesRepository.findById(id);
 
     this.eventEmitter.emit('courses.findById', findedCourse);
 
@@ -38,16 +38,7 @@ export class CoursesService {
   }
 
   create(data: CreateCourseDto) {
-    const createdCourse = {
-      ...data,
-      id: this.currentId,
-      created_at: Date.now(),
-      updated_at: Date.now()
-    };
-
-    this.coursesList.push(createdCourse);
-
-    this.currentId += 1;
+    const createdCourse = this.coursesRepository.create(data);
 
     this.eventEmitter.emit('courses.create', createdCourse);
 
@@ -55,20 +46,7 @@ export class CoursesService {
   }
 
   update(data: UpdateCourseDto) {
-    const courseIndex = this.coursesList.findIndex(course => course.id === data.id);
-
-    if (courseIndex === -1) {
-      throw new HttpException('Course not found!', 404);
-    }
-
-    const updatedCourse = this.coursesList[courseIndex];
-
-    Object.assign(updatedCourse, {
-      ...data,
-      updated_at: Date.now(),
-    });
-
-    this.coursesList[courseIndex] = updatedCourse;
+    const updatedCourse = this.coursesRepository.update(data);
 
     this.eventEmitter.emit('courses.update', updatedCourse);
 
@@ -76,13 +54,7 @@ export class CoursesService {
   }
 
   delete(id: number) {
-    const courseIndex = this.coursesList.findIndex(course => course.id === id);
-
-    if (courseIndex === -1) {
-      throw new HttpException('Course not found!', 404);
-    }
-
-    this.coursesList.splice(courseIndex, 1);
+    this.coursesRepository.delete(id);
 
     this.eventEmitter.emit('courses.delete', { message: `Course ${id} deleted!` });
 
