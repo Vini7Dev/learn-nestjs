@@ -1,27 +1,24 @@
 import { HttpException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { response } from 'express';
 import { CoursesController } from './courses.controller';
 import { CoursesService } from './courses.service';
+import { Course } from './entities/course.entity';
 
 describe('CoursesController', () => {
   let coursesController: CoursesController;
   let coursesService: CoursesService;
 
-  const templateCoursesList = [
-    { id: 0, name: 'Example 1', duration: 100, created_at: Date.now(), updated_at: Date.now() },
-    { id: 1, name: 'Example 2', duration: 200, created_at: Date.now(), updated_at: Date.now() },
-  ];
-
-  const singleCourseCreated = {
+  const singleCourseCreated = new Course({
     id: 0,
-    name: 'Example 1',
+    name: 'Example',
     duration: 100,
     created_at: Date.now(),
     updated_at: Date.now(),
-  }
+  });
 
-  const singleCourseData = { name: 'Example 1', duration: 100 }
+  const singleCourseData = new Course({ name: 'Example', duration: 100 });
+
+  const templateCoursesList = [singleCourseCreated, singleCourseCreated];
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
