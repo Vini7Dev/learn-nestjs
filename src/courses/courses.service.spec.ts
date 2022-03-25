@@ -1,16 +1,17 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { CoursesService } from './courses.service';
+import { CoursesRepository } from './repositories/courses-repository';
 
 describe('CoursesService', () => {
-  let service: CoursesService;
+  let coursesService: CoursesService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [CoursesService, EventEmitter2],
+      providers: [CoursesService, EventEmitter2, CoursesRepository],
     }).compile();
 
-    service = module.get<CoursesService>(CoursesService);
+    coursesService = module.get<CoursesService>(CoursesService);
   });
 
   it('should be able to create a new course', () => {
@@ -19,7 +20,7 @@ describe('CoursesService', () => {
       duration: 100,
     };
 
-    const courseCreated = service.create(courseExampleData);
+    const courseCreated = coursesService.create(courseExampleData);
 
     expect(courseCreated).toHaveProperty('id', 0);
     expect(courseCreated).toHaveProperty('name', 'Example');
@@ -37,10 +38,10 @@ describe('CoursesService', () => {
       duration: 200,
     }
 
-    service.create(firstCourseExampleData);
-    service.create(secondCourseExampleData);
+    coursesService.create(firstCourseExampleData);
+    coursesService.create(secondCourseExampleData);
 
-    const coursesList = service.list();
+    const coursesList = coursesService.list();
 
     expect(coursesList).toHaveLength(2);
     expect(coursesList[0]).toHaveProperty('id', 0);
@@ -53,9 +54,9 @@ describe('CoursesService', () => {
       duration: 100,
     };
 
-    const courseCreated = service.create(courseExampleData);
+    const courseCreated = coursesService.create(courseExampleData);
 
-    const courseFinded = service.findById(courseCreated.id);
+    const courseFinded = coursesService.findById(courseCreated.id);
 
     expect(courseFinded).toHaveProperty('id', 0);
     expect(courseFinded).toHaveProperty('name', 'Example');
@@ -68,9 +69,9 @@ describe('CoursesService', () => {
       duration: 100,
     };
 
-    const courseCreated = service.create(courseExampleData);
+    const courseCreated = coursesService.create(courseExampleData);
 
-    const courseUpdated = service.update({
+    const courseUpdated = coursesService.update({
       id: courseCreated.id,
       name: 'Updated Course Name',
       duration: 200,
@@ -87,9 +88,9 @@ describe('CoursesService', () => {
       duration: 100,
     };
 
-    const courseCreated = service.create(courseExampleData);
+    const courseCreated = coursesService.create(courseExampleData);
 
-    const response = service.delete(courseCreated.id);
+    const response = coursesService.delete(courseCreated.id);
 
     expect(response).toEqual(courseCreated.id);
   });
