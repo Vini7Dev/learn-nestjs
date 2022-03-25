@@ -54,11 +54,11 @@ export class CoursesService {
   }
 
   delete(id: number) {
-    this.coursesRepository.delete(id);
+    const responseId = this.coursesRepository.delete(id);
 
     this.eventEmitter.emit('courses.delete', { message: `Course ${id} deleted!` });
 
-    return id;
+    return responseId;
   }
 
   @OnEvent('courses.*')

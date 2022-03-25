@@ -43,7 +43,7 @@ describe('CoursesController', () => {
     });
   });
 
-  describe('find by id', () => {
+  describe('findById', () => {
     it('should be able to find course by id', () => {
       const spy = jest.spyOn(coursesService, 'findById').mockReturnValue(singleCourseCreated);
 
